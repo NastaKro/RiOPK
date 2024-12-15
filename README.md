@@ -100,9 +100,19 @@
 ![image](https://github.com/user-attachments/assets/34c271b2-cb19-4fa7-98c5-6d8fbff5b311)
 Ссылка на документацию к API: RiOPK/ApiDocumentation at main · NastaKro/RiOPK
 
+## ПРИМЕРЫ ЭКРАНОВ 
+Ссылка на код страницы личный профиль: https://github.com/NastaKro/RiOPK/blob/main/UI
+![image](https://github.com/user-attachments/assets/52819e55-107d-4a1b-b6db-c14eb05fa904)
 
+![image](https://github.com/user-attachments/assets/457d478a-9547-4959-98e7-f0b079fd845a)
 
+![image](https://github.com/user-attachments/assets/64303c33-9550-47c5-b43a-2bcbb156ff83)
 
+![image](https://github.com/user-attachments/assets/a4d19c81-3eae-4bec-ac74-98254b45b951)
+
+![image](https://github.com/user-attachments/assets/5a1c37c1-23b9-4979-ad52-9713e85acbed)
+
+![image](https://github.com/user-attachments/assets/06adcde7-099e-4168-9ae7-b2f430523992)
 
 
  
