@@ -114,6 +114,262 @@
 
 ![image](https://github.com/user-attachments/assets/06adcde7-099e-4168-9ae7-b2f430523992)
 
+## Тестирование 
+Описание: Модульные тесты проверяют отдельные компоненты или функции кода в изоляции от остальной системы. Вот ключевые аспекты и подходы к модульному тестированию:
+
+Тестируемые модули: модульное тестирование проводится на уровне функций, методов или классов. Каждый тест охватывает конкретную функциональность.
+
+Изоляция: для изоляции тестируемого модуля используются заглушки (stubs) и моки (mocks), которые имитируют поведение зависимых компонентов.
+
+Автоматизация: модульные тесты автоматизируются с помощью фреймворков, таких как MSTest, NUnit или xUnit. Это позволяет быстро запускать тесты после каждого изменения в коде.
+
+Методики написания тестов:
+
+Arrange-Act-Assert (AAA): подготовка данных и условий (Arrange), выполнение тестируемого кода (Act) и проверка результатов (Assert).
+
+TDD (Test-Driven Development): методология разработки, при которой тесты пишутся до написания самого кода. Сначала создаются тесты, затем пишется код, который проходит эти тесты.
+
+Интеграционное тестирование (Integration Testing)
+
+Интеграционные тесты проверяют взаимодействие между различными модулями или компонентами системы. Основные аспекты интеграционного тестирования:
+
+Интеграция компонентов: тесты проверяют, как модули взаимодействуют друг с другом, например, взаимодействие между контроллером и базой данных в веб-приложении.
+
+Автоматизация: как и модульные тесты, интеграционные тесты автоматизируются с помощью фреймворков. 
+
+Настройка тестовой среды: интеграционные тесты часто требуют настройки тестовой базы данных и других зависимостей.
+
+Методики написания тестов:
+
+End-to-End (E2E) Testing: проверка всего процесса от начала до конца, включая все взаимодействия.
+
+Mocking and Stubbing: использование моков и заглушек для имитации поведения внешних систем.
+
+ПРИМЕРЫ ТЕСТОВ:
+
+UNIT-ТЕСТ:
+using Xunit;
+
+public class AuthorizationServiceTests
+{
+    [Fact]
+    public void Authenticate_ValidCredentials_ReturnsTrue()
+    {
+        // Arrange
+        var service = new AuthorizationService();
+        var login = "petrov_admin";
+        var password = "petrov_admin";
+
+        // Act
+        var result = service.Authenticate(login, password);
+
+        // Assert
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void Authenticate_InvalidCredentials_ReturnsFalse()
+    {
+        // Arrange
+        var service = new AuthorizationService();
+        var login = "invalid_user";
+        var password = "invalid_password";
+
+        // Act
+        var result = service.Authenticate(login, password);
+
+        // Assert
+        Assert.False(result);
+    }
+}
+Authenticate_ValidCredentials_ReturnsTrue:
+Arrange: Создаем экземпляр сервиса AuthorizationService и задаем валидные учетные данные.
+Act: Вызываем метод Authenticate с валидными учетными данными.
+Assert: Проверяем, что метод возвращает true.
+Authenticate_InvalidCredentials_ReturnsFalse:
+Arrange: Создаем экземпляр сервиса AuthorizationService и задаем невалидные учетные данные.
+Act: Вызываем метод Authenticate с невалидными учетными данными.
+Assert: Проверяем, что метод возвращает false.
+Эти модульные тесты помогают убедиться, что метод Authenticate работает правильно для различных сценариев ввода данных.
+
+Интеграционный тест:
+using Analytics.Server.Funcs;
+using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using Authorization = Analytics.Server.Objects.Authorization;
+
+namespace Tests
+{
+    public class AuthorizationControllerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+    {
+        private readonly HttpClient _clientValid;
+        private readonly HttpClient _clientNotValid;
+
+        public AuthorizationControllerIntegrationTests(WebApplicationFactory<Program> factory)
+        {
+            _clientValid = factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+
+                });
+            }).CreateClient();
+
+            _clientValid.DefaultRequestHeaders.Add("Cookie", $"{CookiesManager.TOKEN_KEY}={CookiesManager.GenerateToken("petrov_admin", CookiesManager.Roles.ADMIN, 1)}");
+
+            _clientNotValid = factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+
+                });
+            }).CreateClient();
+
+            _clientNotValid.DefaultRequestHeaders.Add("Cookie", $"{CookiesManager.TOKEN_KEY}={"123"}");
+
+        }
+
+        [Fact]
+        public async Task PostLogin_ReturnOk()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Post, "/Authorization");
+
+            var jsonData = new Authorization()
+            {
+                Login = "petrov_admin",
+                Password = "petrov_admin"
+            };
+            var jsonContent = JsonSerializer.Serialize(jsonData);
+            request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _clientValid.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task PostLogin_ReturnUnauthorized()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Post, "/Authorization");
+
+            var jsonData = new Authorization()
+            {
+                Login = "1",
+                Password = "2"
+            };
+            var jsonContent = JsonSerializer.Serialize(jsonData);
+            request.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _clientNotValid.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task LogOut_ReturnOk()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Delete, "/Authorization");
+
+            // Act
+            var response = await _clientValid.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task LogOut_ReturnUnauthorized()
+        {
+            // Arrange
+            var request = new HttpRequestMessage(HttpMethod.Delete, "/Authorization");
+
+            // Act
+            var response = await _clientNotValid.SendAsync(request);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        }
+    }
+}
+
+Этот код представляет собой интеграционные тесты для контроллера авторизации в ASP.NET Core приложении. В коде используется тестовый фреймворк xUnit и библиотека Microsoft.AspNetCore.Mvc.Testing для создания тестового веб-приложения.
+
+Описание кода
+
+using-подключения:
+
+using Analytics.Server.Funcs;: Подключение пространства имен для использования функционала Analytics.Server.
+
+using Microsoft.AspNetCore.Mvc.Testing;: Подключение пространства имен для создания тестового веб-приложения.
+
+using System.Net;: Подключение пространства имен для работы с HTTP-запросами.
+
+using System.Text;: Подключение пространства имен для работы с текстовыми данными и кодировками.
+
+using System.Text.Json;: Подключение пространства имен для работы с JSON-данными.
+
+using Authorization = Analytics.Server.Objects.Authorization;: Псевдоним для объекта авторизации.
+
+Пространство имен и класс тестов
+
+Пространство имен namespace Tests содержит класс тестов 
+
+AuthorizationControllerIntegrationTests, реализующий интерфейс 
+
+IClassFixture<WebApplicationFactory<Program>> для создания тестового веб-приложения.
+
+Поля класса
+
+_clientValid: HTTP-клиент, используемый для выполнения запросов с валидным токеном авторизации.
+
+_clientNotValid: HTTP-клиент, используемый для выполнения запросов с невалидным токеном авторизации.
+
+Конструктор класса
+
+В конструкторе создаются два HTTP-клиента:
+
+_clientValid с валидным токеном авторизации.
+
+_clientNotValid с невалидным токеном авторизации.
+
+Методы тестов
+
+PostLogin_ReturnOk: Тестирует успешную авторизацию пользователя с валидными учетными данными.
+
+Создается POST-запрос на /Authorization с валидными данными авторизации.
+Ожидается, что статус ответа будет HTTP 200 OK.
+
+PostLogin_ReturnUnauthorized: Тестирует неуспешную авторизацию пользователя с 
+невалидными учетными данными.
+
+Создается POST-запрос на /Authorization с невалидными данными авторизации.
+Ожидается, что статус ответа будет HTTP 401 Unauthorized.
+
+LogOut_ReturnOk: Тестирует успешный выход пользователя из системы.
+
+Создается DELETE-запрос на /Authorization с валидным токеном.
+Ожидается, что статус ответа будет HTTP 200 OK.
+
+LogOut_ReturnUnauthorized: Тестирует неуспешный выход пользователя из системы с невалидным токеном.
+
+Создается DELETE-запрос на /Authorization с невалидным токеном.
+Ожидается, что статус ответа будет HTTP 401 Unauthorized.
+
+Этот тестовый класс проверяет основные сценарии авторизации и выхода из системы, обеспечивая таким образом функциональную и интеграционную проверку контроллера авторизации.
+
+
+
+
+
 
  
  
