@@ -1,0 +1,121 @@
+## Примеры экранов
+
+
+
+export const Screen = () => {
+  return (
+    <div className="screen">
+      <div className="div">
+        <div className="navbar">
+          <div className="text-wrapper">Список сотрудников</div>
+
+          <div className="text-wrapper">Отчеты</div>
+
+          <div className="text-wrapper">Тесты</div>
+
+          <div className="text-wrapper">Аналитика</div>
+
+          <div className="text-wrapper-2">Личный профиль</div>
+        </div>
+
+        <img className="MOTIVATION" alt="Motivation" src={MOTIVATION} />
+
+        <div className="frame">
+          <img className="rectangle" alt="Rectangle" src={rectangle177340} />
+
+          <Button
+            className="button-instance"
+            divClassName="design-component-instance-node"
+            text="Список опросов"
+          />
+          <Button
+            className="button-2"
+            divClassName="button-3"
+            text="Изменить информацию"
+          />
+          <Button className="button-4" divClassName="button-5" text="Выход" />
+        </div>
+
+        <div className="frame-2">
+          <div className="frame-3">
+            <div className="div-wrapper">
+              <div className="text-wrapper-3">Фамилия</div>
+            </div>
+
+            <div className="frame-4">
+              <div className="text-wrapper-4">Имя</div>
+            </div>
+
+            <div className="frame-4">
+              <div className="text-wrapper-4">Отчество</div>
+            </div>
+
+            <div className="frame-4">
+              <div className="text-wrapper-5">Пол</div>
+            </div>
+
+            <div className="frame-4">
+              <div className="text-wrapper-4">Дата рождения</div>
+            </div>
+
+            <div className="frame-4">
+              <div className="text-wrapper-4">Гражданство</div>
+            </div>
+
+            <div className="frame-4">
+              <div className="text-wrapper-4">Гражданство</div>
+            </div>
+
+            <div className="frame-4">
+              <div className="text-wrapper-4">Гражданство</div>
+            </div>
+
+            <div className="frame-4">
+              <div className="text-wrapper-4">Гражданство</div>
+            </div>
+          </div>
+
+          <div className="frame-wrapper">
+            <div className="frame-5">
+              <div className="frame-6">
+                <div className="text-wrapper-6">Крогаль</div>
+              </div>
+
+              <div className="frame-7">
+                <div className="text-wrapper-7">Анастасия</div>
+              </div>
+
+              <div className="frame-7">
+                <div className="text-wrapper-7">Андреевна</div>
+              </div>
+
+              <div className="frame-7">
+                <div className="text-wrapper-7">Женский</div>
+              </div>
+
+              <div className="frame-7">
+                <div className="text-wrapper-7">18.05.2004</div>
+              </div>
+
+              <div className="frame-7">
+                <div className="text-wrapper-7">Беларусь</div>
+              </div>
+
+              <div className="frame-7">
+                <div className="text-wrapper-7">Беларусь</div>
+              </div>
+
+              <div className="frame-7">
+                <div className="text-wrapper-7">Беларусь</div>
+              </div>
+
+              <div className="frame-7">
+                <div className="text-wrapper-7">Беларусь</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
