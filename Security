@@ -1,0 +1,184 @@
+1 ОСНОВНЫЕ ЗАДАЧИ И АРХИТЕКТУРА
+
+Авторизация и аутентификация – ключевые компоненты системы безопасности любой информационной системы. Они обеспечивают контроль доступа к ресурсам и данные, защищая их от несанкционированного доступа. Давайте рассмотрим основные задачи и архитектуру авторизации и аутентификации.
+Основные задачи аутентификации и авторизации:
+Аутентификация
+Аутентификация – это процесс проверки подлинности пользователя или устройства. Основные задачи аутентификации включают:
+Проверка идентификационных данных: ввод логина и пароля, использование биометрических данных, токенов или сертификатов.
+Удостоверение подлинности: проверка предоставленных данных для подтверждения личности пользователя.
+Обеспечение безопасности: защита аутентификационных данных от кражи и несанкционированного использования.
+Многофакторная аутентификация (MFA): использование нескольких факторов для повышения уровня безопасности (например, пароль и одноразовый код).
+Авторизация
+Авторизация – это процесс определения прав и разрешений пользователя на доступ к ресурсам и выполнению определенных действий. Основные задачи авторизации включают:
+Определение прав доступа: проверка, какие ресурсы и операции доступны для данного пользователя.
+Управление ролями и правами: назначение ролей и прав пользователям на основе их функций и обязанностей.
+Контроль доступа: ограничение доступа к ресурсам на основе политик безопасности и привилегий пользователя.
+Мониторинг и аудит: Регистрация и анализ событий доступа для обнаружения и предотвращения несанкционированного доступа. 
+Рассмотрим архитектуру авторизации и аутентификации, реализованную в коде, на примере AuthorizationController.
+Компоненты архитектуры из кода:
+Клиентское приложение: клиентское приложение отправляет HTTP-запросы на сервер для выполнения операций аутентификации и авторизации.
+Сервер аутентификации и авторизации: в данном случае сервер выполняет обе функции ¬– аутентификации и авторизации.
+База данных пользователей: PostgreSQL база данных используется для хранения учетных записей пользователей, хешей паролей, солей и ролей пользователей.
+Контроллер авторизации (AuthorizationController): этот контроллер обрабатывает запросы на вход в систему (логин) и выход из системы (лог-аут).
+CookiesManager: класс CookiesManager используется для управления токенами аутентификации, включая их генерацию, проверку и удаление.
+Основные функции и их взаимодействие:
+Аутентификация:
+Вход в систему (метод PostLogin):
+Получение данных: клиентское приложение отправляет POST-запрос на /Authorization с логином и паролем.
+Чтение тела запроса: контроллер читает и десериализует данные из тела запроса.
+Поиск пользователя в базе данных: выполняется SQL-запрос для поиска пользователя по логину.
+Проверка пароля: проверяется пароль с использованием хеша пароля и соли.
+Генерация токена: если пароль верен, CookiesManager генерирует токен и устанавливает его в куки.
+Авторизация:
+Проверка доступа (метод LogOut):
+Проверка токена: проверяется валидность токена с использованием CookiesManager.
+Удаление токенов: если токен валиден, удаляются все куки, связанные с авторизацией.
+Пример кода из AuthorizationController:
+  Метод PostLogin:
+  public async Task<IActionResult> PostLogin()
+        {
+            using var reader = new StreamReader(Request.Body);
+            var body = await reader.ReadToEndAsync();
+            var authorization = JsonConvert.DeserializeObject<Authorization>(body);
+
+            if (authorization == null)
+            {
+                return BadRequest();
+            }
+
+            //var (a,b) = HashPassword.GetHashPassword(authorization.Password);
+
+            string sql = @"
+                SELECT 
+                    u.employee_id,
+                    u.username,
+                    u.password_hash,
+                    u.salt,
+                    r.role_name
+                FROM 
+                    Users u
+                JOIN 
+                    Roles r ON u.role_id = r.role_id
+                WHERE 
+                    u.username = @username;";
+
+            using var connection = new NpgsqlConnection(DataBase.connString);
+            connection.Open();
+            using (var command = new NpgsqlCommand(sql, connection))
+            {
+                command.Parameters.AddWithValue("@username", authorization.Login);
+
+                using (var readerSQL = command.ExecuteReader())
+                {
+                    if (readerSQL.Read())
+                    {
+                        string passwordHash = readerSQL.GetString(2);
+                        byte[] salt = (byte[])readerSQL[3];
+
+                        if (HashPassword.VerifyPassword(authorization.Password, passwordHash, salt))
+                        {
+                            int employee_id = readerSQL.GetInt32(0);
+                            string userName = readerSQL.GetString(1);
+                            string roleName = readerSQL.GetString(4);
+                            var сookiesManager = new CookiesManager();
+                            сookiesManager.GenerateTokenAndSet(Response, userName, roleName, employee_id);
+                            return Ok();
+                        }
+
+                    }
+                }
+            }
+            return Unauthorized();
+        }
+
+
+  Метод LogOut:
+
+  [HttpDelete(Name = "LogOut")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> LogOut()
+        {
+            var сookiesManager = new CookiesManager();
+
+            if (!сookiesManager.CheckTokenValidity(Request, CookiesManager.Roles.GetAll()))
+            {
+                return Unauthorized();
+            }
+
+            CookiesManager.DeleteAllCookies(Response);
+
+            return Ok();
+        }
+
+2 Система разграничения прав доступа
+
+Система разграничения прав доступа (RBAC) с использованием JWT (JSON Web Token). 
+Основные аспекты системы разграничения прав доступа (RBAC):
+Роли и права:
+В системе определены роли пользователей, такие как ADMIN, HR и EMPLOYEE.
+Каждая роль имеет определенные права, которые определяют, какие действия могут выполнять пользователи с данной ролью.
+Генерация и проверка токенов:
+При успешной аутентификации пользователю выдается JWT, который содержит информацию о его роли и идентификаторе.
+Этот токен используется для проверки прав доступа пользователя при выполнении запросов к защищенным ресурсам.
+
+Реализация определения ролей в классе TokenValidetator:
+
+public struct Roles
+{
+    public const string ADMIN = "Admin";
+    public const string HR = "HR";
+    public const string EMPLOYEE = "Employee";
+
+    public static string[] GetAll()
+    {
+        string[] res = { ADMIN, HR, EMPLOYEE };
+
+        return res;
+    }
+}
+
+Метод GenerateToken создает JWT с информацией о логине, роли и идентификаторе пользователя.
+
+public static string GenerateToken(string login, string roleName, int id, DateTime? timeLife = null)
+{
+    if (timeLife == null)
+    {
+        timeLife = DateTime.Now.AddMinutes(30);
+    }
+
+    var claims = new[]
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, login),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim("userRole", roleName),
+        new Claim("id", id.ToString())
+    };
+
+    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SECRET_KEY));
+    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+    var token = new JwtSecurityToken(
+        issuer: ISSUER,
+        audience: AUDIENCE,
+        expires: timeLife,
+        signingCredentials: creds,
+        claims: claims
+    );
+
+    return new JwtSecurityTokenHandler().WriteToken(token);
+}
+
+3 Обеспечение безопасности данных
+
+Для обеспечения безопасности данных в системе внедрены следующие механизмы:
+Шифрование паролей: пароли пользователей хранятся в зашифрованном виде. Это повышает защиту в случае утечки данных:
+
+private static string GetHashPassword(string password, byte[] salt)
+{
+    using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 100000, HashAlgorithmName.SHA256))
+    {
+        byte[] hash = pbkdf2.GetBytes(32); // Длина хеша 32 байта (256 бит)
+        return Convert.ToBase64String(hash);
+    }
+}
