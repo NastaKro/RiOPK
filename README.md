@@ -89,3 +89,27 @@
 
 Рисунок 3.1 – Диаграмма классов
 
+## 4 ДОКУМЕНТАЦИЯ 
+
+ ![image](https://github.com/user-attachments/assets/415e02dc-4a89-42e7-b9be-af6824e6d10f)
+ ![image](https://github.com/user-attachments/assets/e8c78436-6e15-47d7-9514-5ffe0b1d70a8)
+![image](https://github.com/user-attachments/assets/758081c8-db41-4187-92ed-d1529b28748c)
+![image](https://github.com/user-attachments/assets/23099dcb-5b3e-4427-bf55-edb58173ff11)
+![image](https://github.com/user-attachments/assets/9165e963-b4fd-4bb9-9e5b-84947aa879b4)
+![image](https://github.com/user-attachments/assets/359c3ace-88f0-4aeb-9c5b-a7b6a39f71ed)
+![image](https://github.com/user-attachments/assets/34c271b2-cb19-4fa7-98c5-6d8fbff5b311)
+Ссылка на документацию к API: RiOPK/ApiDocumentation at main · NastaKro/RiOPK
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+
